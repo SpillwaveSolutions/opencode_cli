@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Logs
+*.log
+
+# Local configuration overrides
+*.local.md
+*.local.json
+
+# Environment files (should not be in skills)
+.env
+.env.*
+
+# Generated files
+*.generated.md
