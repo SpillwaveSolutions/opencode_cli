@@ -1,11 +1,43 @@
 ---
-name: opencode_cli
+name: opencode-cli
 description: This skill should be used when configuring or using the OpenCode CLI for headless LLM automation. Use when the user asks to "configure opencode", "use opencode cli", "set up opencode", "opencode run command", "opencode model selection", "opencode providers", "opencode vertex ai", "opencode mcp servers", "opencode ollama", "opencode local models", "opencode deepseek", "opencode kimi", "opencode mistral", "fallback cli tool", or "headless llm cli". Covers command syntax, provider configuration, Vertex AI setup, MCP servers, local models, cloud providers, and subprocess integration patterns.
 ---
 
 # OpenCode CLI Skill
 
 Use OpenCode CLI for headless LLM automation via subprocess invocation.
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Overview](#overview)
+- [Basic Usage](#basic-usage)
+- [Model Format](#model-format)
+- [Configuration](#configuration)
+- [Reference Guides](#reference-guides)
+- [Subprocess Invocation](#subprocess-invocation)
+- [Limitations vs Claude CLI](#limitations-vs-claude-cli)
+- [Environment Variables](#environment-variables)
+- [Verify Setup](#verify-setup)
+- [Best Practices](#best-practices)
+
+## Quick Start
+
+1. Install OpenCode CLI (see [OpenCode documentation](https://opencode.ai))
+2. Set environment variables for the provider:
+   ```bash
+   export ANTHROPIC_API_KEY="sk-..."  # For Anthropic
+   # OR
+   export GOOGLE_CLOUD_PROJECT="project-id"  # For Vertex AI
+   ```
+3. Verify installation:
+   ```bash
+   opencode --version
+   ```
+4. Test with a simple prompt:
+   ```bash
+   opencode run --model google/gemini-2.5-pro "Hello, world"
+   ```
 
 ## Overview
 
@@ -87,18 +119,9 @@ Load the appropriate reference for detailed configuration:
 | MCP server configuration | [mcp-servers.md](references/mcp-servers.md) |
 | Subprocess integration patterns | [integration-patterns.md](references/integration-patterns.md) |
 
-## Quick Vertex AI Setup
+## Vertex AI Setup
 
-For Google Cloud Vertex AI integration:
-
-```bash
-# Set required environment variables
-export GOOGLE_CLOUD_PROJECT="your-project-id"
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
-export VERTEX_LOCATION="us-central1"  # Optional, defaults to global
-```
-
-See [vertex-ai-setup.md](references/vertex-ai-setup.md) for detailed configuration.
+See [vertex-ai-setup.md](references/vertex-ai-setup.md) for Vertex AI configuration including environment variables and service account setup.
 
 ## Subprocess Invocation
 
@@ -144,15 +167,23 @@ See [integration-patterns.md](references/integration-patterns.md) for complete p
 | `GOOGLE_APPLICATION_CREDENTIALS` | Service account JSON path |
 | `VERTEX_LOCATION` | Vertex AI region |
 
-## Health Monitoring
+## Verify Setup
 
-Check tool availability:
+Complete this checklist to verify a working installation:
 
-```bash
-opencode --version
-```
-
-Returns version string if installed and accessible.
+1. **Check version** - Confirm CLI is installed:
+   ```bash
+   opencode --version
+   ```
+2. **Test default model** - Verify basic connectivity:
+   ```bash
+   opencode run --model google/gemini-2.5-pro "Say hello"
+   ```
+3. **Check configuration** - Review active config:
+   ```bash
+   cat ~/.config/opencode/opencode.json
+   ```
+4. **Verify MCP servers** (if configured) - Test MCP connectivity by running a command that uses MCP tools
 
 ## Best Practices
 
