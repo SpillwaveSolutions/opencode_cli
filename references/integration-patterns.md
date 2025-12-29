@@ -3,7 +3,7 @@
 Generic patterns for integrating OpenCode CLI into applications.
 
 > **Note:** These are documentation examples showing integration patterns.
-> Adapt to your project's specific subprocess handling utilities.
+> Adapt patterns to specific subprocess handling utilities.
 
 ## Command Structure
 
