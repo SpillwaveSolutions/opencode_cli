@@ -24,19 +24,26 @@ OpenCode uses JSON/JSONC format with schema validation:
 
 ## File Locations
 
-Configs are merged in precedence order:
+Config files are **merged** (not replaced). Later sources override earlier ones for conflicting keys. Effective order (lowest to highest):
 
-1. `OPENCODE_CONFIG` environment variable (highest)
-2. `opencode.json` in project root
-3. `~/.config/opencode/opencode.json` (lowest)
+1. Remote organizational config (`.well-known/opencode`)
+2. Global: `~/.config/opencode/opencode.json`
+3. Custom path: `OPENCODE_CONFIG` env var
+4. Project: `opencode.json` in project root
+5. `.opencode/` directories
+6. Inline: `OPENCODE_CONFIG_CONTENT` env var
+
+In practice: project config overrides `OPENCODE_CONFIG` overrides global.
 
 ## Built-in Providers
+
+Most well-known providers (Anthropic, OpenAI, Google, etc.) need **no provider block** — just authenticate via `opencode auth login` or set the environment variable. OpenCode is powered by the provider list at models.dev.
 
 ### Anthropic
 
 ```json
 {
-  "model": "anthropic/claude-sonnet-4-20250514",
+  "model": "anthropic/claude-sonnet-4-5",
   "provider": {
     "anthropic": {
       "options": {
@@ -82,14 +89,6 @@ Configs are merged in precedence order:
 ```
 
 **Environment:** `GOOGLE_GENERATIVE_AI_API_KEY`
-
-### OpenCode Free Tier
-
-No configuration needed - use directly:
-
-```bash
-opencode run --model opencode/grok-code "Your prompt"
-```
 
 ## Custom Provider Setup
 
@@ -140,9 +139,6 @@ For providers with OpenAI-compatible endpoints:
       "models": {
         "llama3.2": {
           "name": "Llama 3.2 (local)"
-        },
-        "codellama": {
-          "name": "Code Llama (local)"
         }
       }
     }
@@ -213,6 +209,8 @@ Only allow specific providers:
 }
 ```
 
+If an environment variable is not set, it is replaced with an empty string.
+
 ### File References
 
 ```json
@@ -227,10 +225,7 @@ Only allow specific providers:
 }
 ```
 
-Supports:
-- Absolute paths: `/path/to/file`
-- Home directory: `~/path/to/file`
-- Relative paths: `./path/to/file` (relative to config directory)
+File paths can be relative to the config file directory, or absolute paths starting with `/` or `~`.
 
 ## Model Configuration
 
@@ -265,6 +260,26 @@ Configure a cheaper model for lightweight tasks:
 
 OpenCode automatically uses `small_model` for tasks like title generation.
 
+### Provider Options
+
+```json
+{
+  "provider": {
+    "anthropic": {
+      "options": {
+        "timeout": 600000,
+        "chunkTimeout": 30000,
+        "setCacheKey": true
+      }
+    }
+  }
+}
+```
+
+- `timeout` - Request timeout in ms (default 300000; set `false` to disable)
+- `chunkTimeout` - Timeout between streamed chunks
+- `setCacheKey` - Always set a cache key
+
 ## Authentication Methods
 
 ### API Key (Most Common)
@@ -279,10 +294,17 @@ OpenCode automatically uses `small_model` for tasks like title generation.
 
 ### AWS Bedrock
 
-```bash
-export AWS_ACCESS_KEY_ID="..."
-export AWS_SECRET_ACCESS_KEY="..."
-export AWS_REGION="us-east-1"
+```json
+{
+  "provider": {
+    "amazon-bedrock": {
+      "options": {
+        "region": "us-east-1",
+        "profile": "my-aws-profile"
+      }
+    }
+  }
+}
 ```
 
 ### Azure OpenAI
@@ -357,8 +379,7 @@ Multi-provider configuration:
         "baseURL": "http://localhost:11434/v1"
       },
       "models": {
-        "llama3.2": { "name": "Llama 3.2" },
-        "codellama": { "name": "Code Llama" }
+        "llama3.2": { "name": "Llama 3.2" }
       }
     }
   }
@@ -370,9 +391,7 @@ Multi-provider configuration:
 List available models after configuration:
 
 ```bash
-# In TUI mode
-opencode
-# Then type /models
+opencode models [provider]   # or: opencode models --refresh
 
 # Or test headless
 opencode run --model provider/model "Test prompt"

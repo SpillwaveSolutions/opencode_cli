@@ -8,7 +8,7 @@ Add MCP servers in `opencode.json`:
 
 ```json
 {
-  "$schema": "https://opencode.dev/schema/opencode.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "server-name": {
       "type": "local",
@@ -20,11 +20,66 @@ Add MCP servers in `opencode.json`:
 }
 ```
 
+## Server Types
+
+| Type | Description |
+|------|-------------|
+| `local` | Run as a local subprocess |
+| `remote` | Connect to a remote URL (supports OAuth) |
+
+### Local Server Options
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `type` | Yes | Must be `"local"` |
+| `command` | Yes | Command array to execute |
+| `cwd` | No | Working directory for the process |
+| `environment` | No | Environment variables |
+| `enabled` | No | Enable/disable on startup (default true) |
+| `timeout` | No | Tool-fetch timeout in ms (default 5000) |
+
+### Remote Server Options
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `type` | Yes | Must be `"remote"` |
+| `url` | Yes | Remote MCP server URL |
+| `headers` | No | Headers (e.g. `Authorization`) |
+| `oauth` | No | OAuth config, or `false` to disable auto-OAuth |
+| `enabled` | No | Enable/disable on startup |
+
 ## Common MCP Servers
 
-### Brave Search
+### Context7 (Documentation Lookup) — Remote (recommended)
 
-Web search capability:
+```json
+{
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+With an optional API key for higher rate limits:
+
+```json
+{
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+### Brave Search
 
 ```json
 {
@@ -43,69 +98,7 @@ Web search capability:
 
 **Get API key:** https://brave.com/search/api/
 
-### Context7 (Documentation Lookup)
-
-Library documentation access:
-
-```json
-{
-  "mcp": {
-    "context7": {
-      "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp"],
-      "enabled": true
-    }
-  }
-}
-```
-
-No API key required.
-
-### Perplexity Ask
-
-AI-powered search:
-
-```json
-{
-  "mcp": {
-    "perplexity-ask": {
-      "type": "local",
-      "command": ["npx", "-y", "server-perplexity-ask"],
-      "enabled": true,
-      "environment": {
-        "PERPLEXITY_API_KEY": "{env:PERPLEXITY_API_KEY}"
-      }
-    }
-  }
-}
-```
-
-**Get API key:** https://www.perplexity.ai/settings/api
-
-### Notion API
-
-Notion workspace access:
-
-```json
-{
-  "mcp": {
-    "notionApi": {
-      "type": "local",
-      "command": ["npx", "-y", "@notionhq/notion-mcp-server"],
-      "enabled": true,
-      "environment": {
-        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer {env:NOTION_API_KEY}\", \"Notion-Version\": \"2022-06-28\"}"
-      }
-    }
-  }
-}
-```
-
-**Get API key:** https://www.notion.so/my-integrations
-
 ### GitHub
-
-Repository access:
 
 ```json
 {
@@ -122,9 +115,9 @@ Repository access:
 }
 ```
 
-### Filesystem
+**Note:** The GitHub MCP server adds a lot of tokens to the context; disable when not needed.
 
-Local file access:
+### Filesystem
 
 ```json
 {
@@ -132,7 +125,7 @@ Local file access:
     "filesystem": {
       "type": "local",
       "command": [
-        "npx", "-y", "@anthropic-ai/mcp-server-filesystem",
+        "npx", "-y", "@modelcontextprotocol/server-filesystem",
         "/path/to/allowed/directory"
       ],
       "enabled": true
@@ -141,68 +134,39 @@ Local file access:
 }
 ```
 
-### Sequential Thinking
-
-Chain-of-thought reasoning:
+### Sequential Thinking / Memory
 
 ```json
 {
   "mcp": {
     "sequential-thinking": {
       "type": "local",
-      "command": ["npx", "-y", "@anthropic-ai/mcp-server-sequential-thinking"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true
-    }
-  }
-}
-```
-
-### Memory
-
-Persistent memory across sessions:
-
-```json
-{
-  "mcp": {
+    },
     "memory": {
       "type": "local",
-      "command": ["npx", "-y", "@anthropic-ai/mcp-server-memory"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
       "enabled": true
     }
   }
 }
 ```
 
-## Configuration Options
+> **Package names:** The official reference servers are published under the `@modelcontextprotocol/*` scope. Older `@anthropic-ai/mcp-server-*` names are deprecated — verify current package names with `npm view <package>` before relying on them.
 
-### Server Types
+## CLI Management
 
-| Type | Description |
-|------|-------------|
-| `local` | Run as local subprocess |
-| `remote` | Connect to remote server |
-
-### Common Fields
-
-```json
-{
-  "server-name": {
-    "type": "local",
-    "command": ["executable", "arg1", "arg2"],
-    "enabled": true,
-    "environment": {
-      "VAR_NAME": "value"
-    }
-  }
-}
+```bash
+opencode mcp add              # interactive add
+opencode mcp list             # or `opencode mcp ls` — list servers + status
+opencode mcp auth <name>      # OAuth auth for remote servers
+opencode mcp auth list        # OAuth status for all servers
+opencode mcp logout <name>    # remove OAuth credentials
+opencode mcp debug <name>     # diagnose connection/OAuth issues
 ```
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `type` | Yes | Server type (local/remote) |
-| `command` | Yes | Command array to execute |
-| `enabled` | No | Enable/disable server (default: true) |
-| `environment` | No | Environment variables |
+OAuth tokens are stored in `~/.local/share/opencode/mcp-auth.json`.
 
 ## Environment Variables
 
@@ -222,20 +186,11 @@ Use variable substitution for secrets:
 
 ```json
 {
-  "$schema": "https://opencode.dev/schema/opencode.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "brave-search": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
-      "enabled": true,
-      "environment": {
-        "BRAVE_API_KEY": "{env:BRAVE_API_KEY}"
-      }
-    },
     "context7": {
-      "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp"],
-      "enabled": true
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
     },
     "github": {
       "type": "local",
@@ -265,14 +220,27 @@ Set `enabled: false` to disable without removing:
 }
 ```
 
+You can also disable MCP tools globally via `tools` globs (tools are registered with the server name as a prefix, e.g. `my-mcp*`):
+
+```json
+{
+  "mcp": {
+    "my-mcp": { "type": "local", "command": ["bun", "x", "my-mcp-command"] }
+  },
+  "tools": {
+    "my-mcp*": false
+  }
+}
+```
+
 ## Troubleshooting
 
 ### Server Not Loading
 
 1. Check `npx` is available
-2. Verify package name is correct
+2. Verify package name is correct (`npm view <package>`)
 3. Check environment variables are set
-4. Look at OpenCode logs for errors
+4. Run `opencode mcp list` / `opencode mcp debug <name>` and check logs
 
 ### Permission Errors
 

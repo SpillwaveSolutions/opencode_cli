@@ -18,6 +18,8 @@ opencode run --model <provider/model> "<prompt>"
 - `--model` - Provider and model in `provider/model` format
 - `prompt` - Positional argument (the actual prompt text)
 
+**For scripting:** add `--format json` for stable, machine-readable output. For repeated invocations, start `opencode serve` once and attach with `opencode run --attach http://localhost:4096` to avoid per-run MCP/provider cold boot.
+
 ## Basic Invocation Pattern
 
 ### Command Building
@@ -188,9 +190,9 @@ args = ["-p"]
 | Headless command | `opencode run` | `claude -p` |
 | Prompt input | Positional arg | Stdin or `-p` flag |
 | Model format | `provider/model` | Short names (sonnet, opus) |
-| Hooks support | No | Yes (`--settings`) |
-| Directory access | No | Yes (`--add-dir`) |
-| Tool pre-approval | No | Yes (`--allowedTools`) |
+| Permissions/pre-approval | `permission` config + `run --auto` | `--allowedTools` |
+| Machine-readable output | `run --format json` | `--output-format` |
+| Session continuation | `run -c` / `run -s <id>` | `--resume` |
 
 ## Best Practices Summary
 
