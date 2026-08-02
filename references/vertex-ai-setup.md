@@ -1,12 +1,12 @@
 # Vertex AI Setup for OpenCode
 
-Configure OpenCode to use Google Cloud Vertex AI for access to Gemini and Claude models.
+Configure OpenCode to use Google Cloud Vertex AI for access to Gemini models (and Claude via the Anthropic Vertex SDK).
 
 ## Prerequisites
 
 1. Google Cloud project with Vertex AI API enabled
-2. Service account with Vertex AI User role (or equivalent)
-3. Service account JSON key file
+2. Service account with Vertex AI User role (`roles/aiplatform.user`)
+3. Service account JSON key file, or `gcloud` ADC
 4. OpenCode CLI installed
 
 ## Environment Variables
@@ -21,12 +21,7 @@ export GOOGLE_CLOUD_PROJECT="your-project-id"
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
 # OR use gcloud CLI authentication:
 # gcloud auth application-default login
-
-# Optional - defaults to 'global'
-export VERTEX_LOCATION="us-central1"
 ```
-
-**Tip:** Use `global` for the location to improve availability without extra cost.
 
 ## Configuration File
 
@@ -43,7 +38,7 @@ Create `~/.config/opencode/opencode.json` or project-level `opencode.json`:
       "npm": "@ai-sdk/google-vertex",
       "options": {
         "project": "{env:GOOGLE_CLOUD_PROJECT}",
-        "location": "{env:VERTEX_LOCATION}"
+        "location": "us-central1"
       },
       "models": {
         "gemini-2.5-pro": {
@@ -68,7 +63,7 @@ Create `~/.config/opencode/opencode.json` or project-level `opencode.json`:
 
 ### Claude on Vertex AI
 
-Claude models on Vertex AI require a different SDK package:
+Claude models on Vertex AI use Anthropic's Vertex SDK package. Verify the current package name (e.g. `@ai-sdk/anthropic-vertex`) before relying on it:
 
 ```json
 {
@@ -76,7 +71,7 @@ Claude models on Vertex AI require a different SDK package:
   "model": "vertex-anthropic/claude-sonnet-4",
   "provider": {
     "vertex-anthropic": {
-      "npm": "@ai-sdk/google-vertex/anthropic",
+      "npm": "@ai-sdk/anthropic-vertex",
       "options": {
         "project": "{env:GOOGLE_CLOUD_PROJECT}",
         "location": "us-east5"
@@ -138,22 +133,7 @@ OpenCode supports environment variable substitution in config:
   "provider": {
     "google-vertex": {
       "options": {
-        "project": "{env:GOOGLE_CLOUD_PROJECT}",
-        "location": "{env:VERTEX_LOCATION}"
-      }
-    }
-  }
-}
-```
-
-Also supports file references:
-
-```json
-{
-  "provider": {
-    "google-vertex": {
-      "options": {
-        "credentials": "{file:~/.secrets/vertex-credentials.json}"
+        "project": "{env:GOOGLE_CLOUD_PROJECT}"
       }
     }
   }
@@ -162,21 +142,10 @@ Also supports file references:
 
 ## Available Vertex AI Models
 
-### Gemini Models
-
 | Model ID | Description |
 |----------|-------------|
 | `gemini-2.5-pro` | Most capable Gemini model |
 | `gemini-2.5-flash` | Fast, efficient for simple tasks |
-| `gemini-2.0-flash-exp` | Experimental flash model |
-
-### Claude Models (via Vertex)
-
-| Model ID | Description |
-|----------|-------------|
-| `claude-sonnet-4` | Balanced performance |
-| `claude-opus-4` | Most capable Claude |
-| `claude-haiku-4` | Fast, cost-effective |
 
 ## Verification
 
@@ -186,6 +155,9 @@ Test the configuration:
 # Set environment
 export GOOGLE_CLOUD_PROJECT="your-project"
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"
+
+# List available vertex models
+opencode models google-vertex
 
 # Test with a simple prompt
 opencode run --model google-vertex/gemini-2.5-flash "Hello, respond with OK"
@@ -223,7 +195,7 @@ Error: Model not available in region
 Error: Model 'xyz' not found
 ```
 
-**Fix:** Verify the model ID matches Vertex AI naming. Use the `/models` command in OpenCode TUI to see available models.
+**Fix:** Verify the model ID matches Vertex AI naming. Use `opencode models google-vertex` to see available models.
 
 ## Cost Considerations
 

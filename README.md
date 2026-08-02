@@ -21,7 +21,7 @@ A Claude Code skill for headless LLM automation using the OpenCode CLI.
 
 ## Overview
 
-This skill provides Claude with comprehensive knowledge about the [OpenCode CLI](https://opencode.ai), a Go-based tool that provides access to 75+ LLM providers through a unified interface. The skill focuses on the headless `run` command for automation and subprocess integration.
+This skill provides Claude with comprehensive knowledge about the [OpenCode CLI](https://opencode.ai), a TypeScript/Bun-based tool that provides access to many LLM providers through a unified interface. The skill focuses on the headless `run` command for automation and subprocess integration.
 
 ## Features
 
@@ -105,11 +105,11 @@ opencode run --model <provider/model> "<prompt>"
 
 ### Configuration Locations
 
-Configuration files are searched in the following order (project settings override global):
+Configuration files are **merged** and loaded in the following precedence order (later overrides earlier):
 
-1. **Environment Variable**: `OPENCODE_CONFIG` path
-2. **Project-Level**: `opencode.json` in project root
-3. **Global**: `~/.config/opencode/opencode.json`
+1. **Global**: `~/.config/opencode/opencode.json`
+2. **Environment Variable**: `OPENCODE_CONFIG` path
+3. **Project-Level**: `opencode.json` in project root (highest standard config)
 
 ## Project Structure
 
@@ -131,8 +131,9 @@ opencode_cli/
 | Feature | OpenCode | Claude CLI |
 |---------|----------|------------|
 | Headless mode | `run` subcommand | `-p` flag with stdin |
-| Hooks support | No | Yes |
-| Directory access | No | Yes (`--add-dir`) |
+| Model format | `provider/model` | Short names (sonnet, opus) |
+| Permissions/pre-approval | `permission` config + `run --auto` | `--allowedTools` flag |
+| Machine-readable output | `run --format json` | `--output-format` |
 | Prompt input | Positional argument | Stdin or `-p` |
 
 ## License

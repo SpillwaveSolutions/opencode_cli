@@ -32,7 +32,7 @@ ollama pull mistral:latest
 
 ```json
 {
-  "$schema": "https://opencode.dev/schema/opencode.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "ollama/qwen3-coder:latest",
   "provider": {
     "ollama": {
